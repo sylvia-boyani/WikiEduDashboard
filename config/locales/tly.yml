@@ -20,7 +20,7 @@ tly:
     cancel: Ləğv karde
     greeting: Səlom!
     help: Koməq
-    home: Əsosə səhifə
+    home: Vəsə
     log_out: Beši
     confirm: COK
     opt_in: Ha
@@ -62,6 +62,9 @@ tly:
     term: Kenə
   metrics:
     added: Əlovə be
+  namespace:
+    template: Šablon
+    category: Kategorijə
   revisions:
     date_time: Torix/Zəmon
     diff: fərğ

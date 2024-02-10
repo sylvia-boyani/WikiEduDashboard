@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import NewAccountButton from './new_account_button.jsx';
+import AdviceModal from './advice_modal';
+import NewAccountButton from './new_account_button';
 
 const EnrollCard = ({
   user, userRoles, course, courseLink, passcode, enrolledParam, enrollFailureReason
 }) => {
+  const [modalShown, setModalShown] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
   let messageBody;
+  let adviceModalButton;
   if (course.ended) {
     messageBody = (
       <div>
@@ -27,7 +32,7 @@ const EnrollCard = ({
           <p>{I18n.t('courses.join_successful', { title: course.title || '' })}</p>
         </div>
       );
-    // Enrollment failed (not approved?)
+      // Enrollment failed (not approved?)
     } else if (enrolledParam === 'false') {
       messageBody = (
         <div>
@@ -36,7 +41,7 @@ const EnrollCard = ({
         </div>
       );
     }
-  // User is logged in and ready to enroll
+    // User is logged in and ready to enroll
   } else if (user.id && userRoles.notEnrolled) {
     messageBody = (
       <div>
@@ -45,14 +50,19 @@ const EnrollCard = ({
         <a className="button border" href={courseLink}>{I18n.t('application.cancel')}</a>
       </div>
     );
-  // User is already enrolled
+    // User is already enrolled
   } else if (userRoles.isEnrolled) {
     messageBody = <h1>{I18n.t('courses.already_enrolled', { title: course.title })}</h1>;
-  // User is not logged in
+    // User is not logged in
   } else if (!user.id) {
     // Login link relies on rails/ujs to turn the anchor link into
     // a POST request based on data-method="post". Otherwise, this
     // needs to become a button or form and include the authenticity token.
+    adviceModalButton = (
+      <a onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)} onClick={() => setModalShown(true)} className="button auth signup border margin">
+        <i className={`icon ${isHovered ? 'icon-wiki-white' : ' icon-wiki-purple'}`} /> {I18n.t('application.sign_up_extended')}
+      </a>
+    );
     messageBody = (
       <div>
         <h1>{I18n.t('application.greeting')}</h1>
@@ -60,29 +70,26 @@ const EnrollCard = ({
         <p>{I18n.t('courses.invitation_username_advice')}</p>
         <div>
           <a data-method="post" href={`/users/auth/mediawiki?origin=${window.location}`} className="button auth dark">
-            <i className="icon icon-wiki-logo" /> {I18n.t('application.log_in_extended')}
+            <i className="icon icon-wiki-white" /> {I18n.t('application.log_in_extended')}
           </a>
-          <NewAccountButton course={course} passcode={passcode} currentUser={user} />
+          {
+            Features.wikiEd
+            ? (adviceModalButton) : (<NewAccountButton course={course} passcode={passcode} currentUser={user} />)
+          }
         </div>
       </div>
     );
   }
 
-  let closeLink;
-  if (course.passcode !== '') {
-    closeLink = (
-      <a href={courseLink}>
-        <svg className="close" tabIndex="0" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" style={{ fill: 'currentcolor', verticalAlign: 'middle', width: '32px', height: '32px' }} >
-          <g><path d="M19 6.41l-1.41-1.41-5.59 5.59-5.59-5.59-1.41 1.41 5.59 5.59-5.59 5.59 1.41 1.41 5.59-5.59 5.59 5.59 1.41-1.41-5.59-5.59z" /></g>
-        </svg>
-      </a>
-    );
-  }
-
   return (
     <div className="module enroll">
-      {closeLink}
+      {
+        course.passcode !== '' && <a href={courseLink} className="icon-close-small pull-right" />
+      }
       {messageBody}
+      {Features.wikiEd && modalShown
+        && <AdviceModal setModalShown={setModalShown} course={course} passcode={passcode} user={user} />
+      }
     </div>
   );
 };
